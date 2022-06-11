@@ -25,8 +25,7 @@ public class EmployeeController {
 
     //    @RequestBody接收前端 发送过来的JSON风格的数据，将其转化为相应的对象
 
-    /**  登录功能处理逻辑如下:
-     * */
+    /**  登录功能处理逻辑如下 **/
     @PostMapping("/login")
     public Result<Employee> login(HttpServletRequest request, @RequestBody Employee employee){
         // 1、将页面提交的密码password进行 MD5 加密处理
