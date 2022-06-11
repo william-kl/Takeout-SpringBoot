@@ -26,12 +26,6 @@ public class EmployeeController {
     //    @RequestBody接收前端 发送过来的JSON风格的数据，将其转化为相应的对象
 
     /**  登录功能处理逻辑如下:
-    // 1、将页面提交的密码password进行 MD5 加密处理
-    // 2、根据页面提交的用户名username查询数据库
-    // 3、如果没有查询到数据，则返回登录失败的结果
-    // 4、进行密码比对，如果不一致，则返回登录失败的结果
-    // 5、查看员工状态，如果为 已禁用状态，则返回被禁用的结果信息
-    // 6、登录成功，将员工id 存入Session并返回登录成功的结果
      * */
     @PostMapping("/login")
     public Result<Employee> login(HttpServletRequest request, @RequestBody Employee employee){
