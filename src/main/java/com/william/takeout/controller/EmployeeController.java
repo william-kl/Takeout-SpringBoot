@@ -71,6 +71,7 @@ public class EmployeeController {
     }
 
     @PostMapping
+    //返回给页面code，没有data，所以只用Result<String>就可以
     public Result<String> save(HttpServletRequest request,@RequestBody Employee employee){
         log.info("新增员工，员工信息:{}",employee.toString());
 
@@ -81,11 +82,17 @@ public class EmployeeController {
         employee.setCreateTime(LocalDateTime.now());
         employee.setUpdateTime(LocalDateTime.now());
 
+        //获得当前登录用户的id(当前登录用户创建了这个employee)
+        //返回的是object类型，需要强转
         Long empId = (Long) request.getSession().getAttribute("employee");
 
         employee.setCreateUser(empId);
         employee.setUpdateUser(empId);
 
+        //employee username唯一；如果第二次添加相同的username，数据库会抛出异常
+        //SQLIntegrityConstraintViolationException: Duplicate entry...for key username..
+        //这里可以写try, catch; 但是不好，因为要写很多。使用异常处理器进行全局异常捕获
+        //在common下创建一个GlobalExceptionHandler
         employeeService.save(employee);
 
         return Result.success("成功新增员工");
