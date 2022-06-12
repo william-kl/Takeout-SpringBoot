@@ -1,16 +1,15 @@
 package com.william.takeout.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.william.takeout.common.Result;
 import com.william.takeout.entity.Employee;
 import com.william.takeout.service.EmployeeService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
@@ -98,4 +97,36 @@ public class EmployeeController {
         return Result.success("成功新增员工");
     }
 
+        /*  pageShow方法的返回对象 应该是MP 中的
+       Page对象(包含分页数据集合records、数据总数、每页的大小)
+         protected List<T> records;
+         protected long total;
+         protected long size;
+     */
+
+    // 分页展示功能的流程分析:
+//     1、页面发送Ajax请求，将分页查询参数(page、pageSize、name)提交到服务端
+//     2、服务端Controller接收页面提交的数据 并调用Service查询数据
+//     3、Service调用Mapper操作数据库，查询分页的数据
+//     4、Controller将查询的分页数据 响应给页面
+//     5、页面接收到分页数据并通过前端(ElementUI)的table组件展示到页面上
+    @GetMapping("/page")
+    public Result<Page> pageShow(int page, int pageSize, String name){//这个name是页面放大镜搜索输入的
+        log.info("page = {},pageSize = {},name = {}",page,pageSize,name);
+
+        // 创建分页构造器对象
+        //page和pageSize是前端提供的默认值
+        Page pageInfo = new Page(page,pageSize);
+
+        //  构造条件构造器(如果name传进来的话)
+        LambdaQueryWrapper<Employee> queryWrapper = new LambdaQueryWrapper();
+        //   name不为null，才会 比较 getUsername方法和前端传入的name是否匹配 的过滤条件
+        queryWrapper.like(StringUtils.isNotEmpty(name),Employee::getUsername,name);
+        //  根据 更新用户的时间升序 分页展示
+        queryWrapper.orderByAsc(Employee::getUpdateTime);
+
+        // 去数据库查询
+        employeeService.page(pageInfo,queryWrapper);
+        return Result.success(pageInfo);//把查询封装的员工对象返回给前端
+    }
 }
