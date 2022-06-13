@@ -1,5 +1,6 @@
 package com.william.takeout.filter;
 import com.alibaba.fastjson.JSON;
+import com.william.takeout.common.BaseContext;
 import com.william.takeout.common.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
@@ -67,7 +68,8 @@ public class LoginCheckFilter implements Filter {
 
             // 自定义元数据对象处理器 MyMetaObjectHandler中需要使用 登录用户id
             //   通过ThreadLocal set和get用户id
-            //BaseContext.setCurrentId(userId);
+            // BaseContext自己写的common包下
+            BaseContext.setCurrentId(userId);
 
             filterChain.doFilter(request,response);
             return;
