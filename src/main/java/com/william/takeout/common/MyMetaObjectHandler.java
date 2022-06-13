@@ -31,8 +31,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         metaObject.setValue("createTime", LocalDateTime.now());
         metaObject.setValue("updateTime", LocalDateTime.now());
 
-        metaObject.setValue("createUser",BaseContext.getCurrentId());//动态获取登陆用户的ID
-        metaObject.setValue("updateUser",BaseContext.getCurrentId());
+        System.out.println(BaseContexts.class);
+        metaObject.setValue("createUser",BaseContexts.getCurrentId());//动态获取登陆用户的ID
+        metaObject.setValue("updateUser",BaseContexts.getCurrentId());
 
 
     }
@@ -41,8 +42,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     public void updateFill(MetaObject metaObject) {//页面更新操作，跳到这个方法
         log.info("公共字段自动填充[update]....");
 
+        //update就不用填充公共的create字段了
         metaObject.setValue("updateTime", LocalDateTime.now());
-        metaObject.setValue("updateUser",BaseContext.getCurrentId());
+        metaObject.setValue("updateUser", BaseContexts.getCurrentId());
 
     }
 }
