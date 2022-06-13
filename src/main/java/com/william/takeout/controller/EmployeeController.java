@@ -129,4 +129,26 @@ public class EmployeeController {
         employeeService.page(pageInfo,queryWrapper);
         return Result.success(pageInfo);//把查询封装的员工对象返回给前端
     }
+
+    /**
+     * **根据id修改员工信息(此方法是一个通用的修改员工信息的方法)**
+     * 点击“禁用”和“编辑”按钮，都是调用这个方法
+     * js对long型数据进行处理时丢失精度，导致提交的id和数据库中的id不一致
+     * 我们可以在服务器端给页面响应json数据时进行处理，将long型数据统一转为String字符串
+     * 具体操作是在WebMvcConfig配置类中扩展Spring mvc的消息转换器
+     * @return
+     */
+    @PutMapping
+    public Result<String> update(HttpServletRequest request,@RequestBody Employee employee){
+        log.info(employee.toString());
+
+        // 下面设置 公共属性的值(createTime、updateTime、createUser、updateUser)交给 MyMetaObjectHandler类处理
+        Long empId = (Long) request.getSession().getAttribute("employee");
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(empId);
+
+        employeeService.updateById(employee);
+        return Result.success("员工信息修改成功！");
+
+    }
 }
