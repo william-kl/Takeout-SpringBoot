@@ -78,15 +78,15 @@ public class EmployeeController {
         employee.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
 
         // 下面设置 公共属性的值(createTime、updateTime、createUser、updateUser)交给 MyMetaObjectHandler类处理
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
+        //employee.setCreateTime(LocalDateTime.now());
+        //employee.setUpdateTime(LocalDateTime.now());
 
         //获得当前登录用户的id(当前登录用户创建了这个employee)
         //返回的是object类型，需要强转
-        Long empId = (Long) request.getSession().getAttribute("employee");
+        //Long empId = (Long) request.getSession().getAttribute("employee");
 
-        employee.setCreateUser(empId);
-        employee.setUpdateUser(empId);
+        //employee.setCreateUser(empId);
+        //employee.setUpdateUser(empId);
 
         //employee username唯一；如果第二次添加相同的username，数据库会抛出异常
         //SQLIntegrityConstraintViolationException: Duplicate entry...for key username..
@@ -143,12 +143,24 @@ public class EmployeeController {
         log.info(employee.toString());
 
         // 下面设置 公共属性的值(createTime、updateTime、createUser、updateUser)交给 MyMetaObjectHandler类处理
-        Long empId = (Long) request.getSession().getAttribute("employee");
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(empId);
+        //Long empId = (Long) request.getSession().getAttribute("employee");
+        //employee.setUpdateTime(LocalDateTime.now());
+        //employee.setUpdateUser(empId);
 
         employeeService.updateById(employee);
         return Result.success("员工信息修改成功！");
 
+    }
+
+    @GetMapping("/{id}")
+    public Result<Employee> getById(@PathVariable Long id){
+        log.info("根据id修改员工信息。。。。");
+
+        Employee employee = employeeService.getById(id);
+
+        if (employee != null){
+            return Result.success(employee);
+        }
+        return Result.error("没有查询到员工信息！");
     }
 }

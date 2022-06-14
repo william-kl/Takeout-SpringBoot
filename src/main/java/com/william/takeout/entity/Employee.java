@@ -27,6 +27,12 @@ public class Employee implements Serializable {
 
     private Integer status;
 
+    /* * Mybatis Plus公共字段自动填充
+    * 加这个注解用来指定自动填充的策略
+    * 统一对公共字段进行处理，不用每次save的时候都要
+    * setUpdateTime/user了
+    * 需要编写元数据对象处理器，实现MetaObjectHandler接口
+    * */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
 
