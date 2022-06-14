@@ -35,15 +35,18 @@ public class GlobalExceptionHandler {
         }
         return Result.error("未知错误！");
     }
-/*
+
+
+    /**
+     * 捕获自己写的异常：从业务层CategoryServiceImpl中抛出来的
+     * @param e
+     * @return
+     */
     @ExceptionHandler(MyCustomException.class)
     public Result<String> exceptionHandler(MyCustomException e){
-        log.info(e.getMessage());
+        log.error(e.getMessage());
 
         return Result.error(e.getMessage());
-
     }
-
- */
 }
 
