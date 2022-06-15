@@ -71,13 +71,15 @@ public class CategoryController {
         return Result.success("分类信息 修改成功！");
     }
 
-    // 根据条件查询分类数据
+    //在菜品管理-添加菜品-菜品分类下拉菜单显示这个list，前端提交的category的type是1，所以这里显示菜品(2是套餐)
+    //前端提交的请求为http://localhost:8080/category/list?type=1
     @GetMapping("/list")
-    public Result<List<Category>> categoryList(Category category){
+    public Result<List<Category>> categoryList(Category category){//把type封装到category这个实体类里，通用性更强
         LambdaQueryWrapper<Category> queryWrapper = new LambdaQueryWrapper<>();
         //  只有当 category.getType()不为空，才会比较 前端传入的category的type和 实体类中 type属性是否相等
         queryWrapper.eq(category.getType() != null, Category::getType,category.getType());
 
+        //先sort排，如果相同，按更新时间降序排
         queryWrapper.orderByAsc(Category::getSort).orderByDesc(Category::getUpdateTime);
 
         List<Category> list = categoryService.list(queryWrapper);
@@ -86,7 +88,6 @@ public class CategoryController {
     }
     // 前端传输到服务端的数据 和实体类中的属性 不是一一对应关系，
     // 需要用到DTO(Data Transfer Object)对象，即数据传输对象，一般用于Controller和Service层之间的数据传输
-
 
 
 }
