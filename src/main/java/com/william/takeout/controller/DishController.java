@@ -94,7 +94,7 @@ public class DishController {
         //  records需要另外去设置(都是Page<T>里的属性,records这里就是页面上展示的列表数据的一个List<T>)
         BeanUtils.copyProperties(dishPage,dtoPage,"records");
 
-        List<Dish> records = dishPage.getRecords();
+        List<Dish> records = dishPage.getRecords();//dishPage的records里是一个一个的Dish对象；给他拿出来
         List<DishDto> dtoList = records.stream().map((dish) -> {  // dish 为每个菜品对象
             DishDto dishDto = new DishDto();
             BeanUtils.copyProperties(dish,dishDto);// 把dish中普通属性拷贝过来；dishDto中还要放一个categoryName
@@ -113,24 +113,42 @@ public class DishController {
         return Result.success(dtoPage);
     }
 
+
+
+
+    /**
+     * 修改菜品（点击修改按钮）发送4个请求：（处理2，4就好了）
+     * 1.发送请求填充菜品分类下拉框(我们在add里已经做过了，在CategoryController的CategoryList方法)
+     * 2.根据dish ID查询dish信息和dishFlavor信息回显填充
+     * 3.下载图片，用于图片回显（CommonController里已经写过）
+     * 4.点击保存（save按钮），发送ajax请求，数据以json提交到胡无端
+     * @param
+     * @return
+     */
+
     @GetMapping("/{id}")
+    /**
+     * 根据id查询菜品（Dish）信息和对应的口味（flavors）信息
+     * 要返回一个DishDto，因为页面需要展示flavors添加口味; Dish没有flavor
+     * 要查询Dish和Flavor, 需要查询两张表，因此要自定义查询方法
+     */
     public Result<DishDto> get(@PathVariable Long id){
 
-        //DishDto dishDto = dishService.getByDishIdWithFlavor(id);
+        DishDto dishDto = dishService.getByIdWithFlavor(id);
 
-        //return Result.success(dishDto);
-        return null;
+        return Result.success(dishDto);
     }
 
+//    修改菜品，点击save提交
     @PutMapping
     public Result<String> update(@RequestBody DishDto dishDto){
         log.info(dishDto.toString());
 
-        //dishService.updateWithFlavor(dishDto);
+        dishService.updateWithFlavor(dishDto);
 
         // 清理 后台修改分类 下面的菜品缓存数据
-        String key = "dish_" + dishDto.getCategoryId() + "_" + dishDto.getStatus();
-        redisTemplate.delete(key);
+//        String key = "dish_" + dishDto.getCategoryId() + "_" + dishDto.getStatus();
+//        redisTemplate.delete(key);
 
         return Result.success("修改菜品操作成功！");
     }
