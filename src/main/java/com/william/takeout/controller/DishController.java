@@ -169,9 +169,14 @@ public class DishController {
 //        return Result.success(list);
 //    }
 
-    // 根据条件(分类id)查询对应的菜品数据
+
+    //处理点击套餐管理 -》添加菜品之后，弹出框左侧的菜品展示
+    // 根据条件(category id)查询对应的菜品dish数据
+    // 例如：弹出框左侧的菜品列表，点击“湘菜”，请求/list/湘菜的id
     @GetMapping("/list")
-    public Result<List<DishDto>> list(Dish dish){
+    public Result<List<Dish>> list(Dish dish){//传一个ID进来，封装成dish
+        /*
+         *
 
         List<DishDto> dishDtoList = null;
         //  根据菜品的分类(湘菜、川菜) 去缓存菜品数据
@@ -183,17 +188,25 @@ public class DishController {
             return Result.success(dishDtoList);
         }
 
+         */
+
         // dishDtoList == null,即Redis中没有 对应的菜品数据，需要去查询数据库
+        // 构造查询条件
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         Long categoryId = dish.getCategoryId();
         queryWrapper.eq(categoryId != null,Dish::getCategoryId,categoryId);
 
-        // status 为 1: 还在售卖的菜品
+        // 添加条件：status 为 1: 还在售卖的菜品
         queryWrapper.eq(Dish::getStatus,1);
         // 根据sort 属性升序片排列
-        queryWrapper.orderByDesc(Dish::getSort);
+        queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
+
         List<Dish> list = dishService.list(queryWrapper);
 
+        return Result.success(list);
+
+        /*
+         *
         dishDtoList = list.stream().map((item) -> {
             DishDto dishDto = new DishDto();
 
@@ -224,6 +237,8 @@ public class DishController {
         // 注意: 如果RedisConfig中配置了value的 序列化方式，则存储key-value时，value应该是String类型，而非List类型
 
         return Result.success(dishDtoList);
+
+         */
     }
 
     // 改变菜品的销售状态
