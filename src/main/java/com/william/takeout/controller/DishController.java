@@ -1,7 +1,7 @@
 package com.william.takeout.controller;
 /**
  *  新增菜品:
- *  1、页面发送Ajax请求，请求服务端获取菜品分类列表 并展示到下拉框中（在CategoryController里取编写）
+ *  1、页面发送Ajax请求(点击新建菜品)，请求服务端获取菜品分类列表 并展示到下拉框中（在CategoryController里取编写）
  *  2、页面发送请求进行图片上传，请求服务端将图片 保存到服务器（CommonController）
  *  3、页面发送请求 进行图片下载，将上传的图片进行回显（CommonController）
  *  4、点击保存按钮，发送Ajax请求，将菜品相关数据 以JSON形式提交到服务器（DishController）
@@ -73,31 +73,41 @@ public class DishController {
         Page<DishDto> dtoPage = new Page<>();
 
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
-        // 添加过滤条件
-        queryWrapper.eq(name != null,Dish::getName,name);
+        // 添加过滤条件(根据name来做模糊查询)
+        queryWrapper.like(name != null,Dish::getName,name);
+
+        // 添加排序条件(按更新时间降序排列)
+        queryWrapper.orderByDesc(Dish::getUpdateTime);
 
         //  执行分页查询
         dishService.page(dishPage,queryWrapper);
+        /** 用dto的原因
+         * 如果只return一个dishPage给前端的话，只会给前端一个categoryId,
+         * 因为dish class里只有菜品分类的categoryId
+         * 而在页面要展示具体的菜品分类名称(川菜，湘菜...)，因此要多返回一个字段
+         * 因此要在DishDto里加一个categoryName属性
+         */
+        // return Result.success(dishPage);
 
-        //  将 dish 中的属性值复制到 dtoPage，但是忽略 records
-        //  records需要另外去设置
+        // 对象拷贝
+        //  将 dishPage 中的属性值复制到 dtoPage，但是忽略records，因为要给records里每个dish换成dishDto
+        //  records需要另外去设置(都是Page<T>里的属性,records这里就是页面上展示的列表数据的一个List<T>)
         BeanUtils.copyProperties(dishPage,dtoPage,"records");
 
         List<Dish> records = dishPage.getRecords();
         List<DishDto> dtoList = records.stream().map((dish) -> {  // dish 为每个菜品对象
             DishDto dishDto = new DishDto();
-
-            BeanUtils.copyProperties(dish,dishDto);
+            BeanUtils.copyProperties(dish,dishDto);// 把dish中普通属性拷贝过来；dishDto中还要放一个categoryName
 
             Long categoryId = dish.getCategoryId();  // 菜品的分类id
-
-            Category category = categoryService.getById(categoryId);
-           if (category != null){
-               dishDto.setCategoryName(category.getName());
-           }
+            Category category = categoryService.getById(categoryId);//根据id查到分类对象
+            if (category != null){
+                String categoryName = category.getName();//根据分类对象，拿到分类名称
+                dishDto.setCategoryName(categoryName);//付给dishDto
+            }
 
             return dishDto;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toList());//把这些dishDto对象收集起来
 
         dtoPage.setRecords(dtoList);
         return Result.success(dtoPage);
