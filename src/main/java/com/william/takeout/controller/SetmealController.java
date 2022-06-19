@@ -38,7 +38,8 @@ public class SetmealController {
 
     /**
      * 新增套餐（setmeal），其实就是将新增页面录入的套餐信息插入到setmeal表，
-     * 还需要向setmeal_dish表插入套餐和菜品关联数据
+     * 还需要向setmeal_dish表插入套餐和菜品关联数据(一个套餐包含几个产品)
+     * 例如：湘菜套餐：一个辣子鸡（dish里），一个米饭（dish里），两个王老吉（dish里）
      * setmeal 套餐表
      * setmeal_dish 套餐菜品关系表
      *
@@ -60,40 +61,57 @@ public class SetmealController {
     public Result<String> save(@RequestBody SetmealDto setmealDto){
 
         log.info("套餐信息:{}",setmealDto);
-        //setmealService.saveWithDish(setmealDto);
+        setmealService.saveWithDish(setmealDto);
         return Result.success("套餐添加 成功！");
     }
 
-    // 套餐Setmeal 分页查询
+
+    /**
+     * 套餐分页查询
+     * 1.页面发送ajax请求，将分页查询参数(page,pagesize.name)提交到服务端，获取分页数据
+     * 2.页面发送请求，请求服务端进行图片下载，用于页面图片展示
+     *
+     * 开发套餐信息分页查询功能，其实就是在服务端编写代码去处理前端页面发送的两次请求即可
+     */
     @GetMapping("/page")
     public Result<Page> showPage(int page,int pageSize,String name){
 
         Page<Setmeal> setmealPage = new Page<>(page,pageSize);
-        Page<SetmealDto> dtoPage = new Page<>(page,pageSize);
 
         LambdaQueryWrapper<Setmeal> queryWrapper = new LambdaQueryWrapper<>();
         // 根据name 进行 like模糊查询
         queryWrapper.like(name != null,Setmeal::getName,name);
+        queryWrapper.orderByDesc(Setmeal::getUpdateTime);
 
         setmealService.page(setmealPage,queryWrapper);
+        //return result.success(setmealPage)如果直接这么写，页面“套餐分类”不会显示
+        //因为setmealPage里存的泛型是Setmeal
+        //要传一个SetmealDto,里面新建一个categoryName，页面就需要这个categoryName
+        //然后这个name通过categoryId查出来，再赋值给SetmealDto
 
+
+        Page<SetmealDto> dtoPage = new Page<>(page,pageSize);
+        //分页查询的结果拷贝到dtoPage
         BeanUtils.copyProperties(setmealPage,dtoPage,"records");
 
         List<Setmeal> records = setmealPage.getRecords();
 
-        List<SetmealDto> dtoList = records.stream().map((record) -> {
+        List<SetmealDto> newRecords = records.stream().map((record) -> {
             SetmealDto setmealDto = new SetmealDto();
-            BeanUtils.copyProperties(record, setmealDto);
-
+            //对象拷贝
+            BeanUtils.copyProperties(record,setmealDto);
+            //分类id
+            Long categoryId = record.getCategoryId();
             // 根据分类id查询 分类对象
-            Category category = categoryService.getById(record.getCategoryId());
+            Category category = categoryService.getById(categoryId);
             if (category != null) {
-                setmealDto.setCategoryName(category.getName());
+                String categoryName = category.getName();
+                setmealDto.setCategoryName(categoryName);
             }
             return setmealDto;
         }).collect(Collectors.toList());
 
-        dtoPage.setRecords(dtoList);
+        dtoPage.setRecords(newRecords);
 
         return Result.success(dtoPage);
     }
