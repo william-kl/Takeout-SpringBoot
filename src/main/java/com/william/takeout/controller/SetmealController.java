@@ -118,11 +118,11 @@ public class SetmealController {
 
     @DeleteMapping
     @CacheEvict(value = "setmealCache",allEntries = true)   //  删除套餐，就要删除套餐相关的所有缓存数据
-    public Result<String> delete(@RequestParam List<Long> ids){
+    public Result<String> delete(@RequestParam List<Long> ids){//批量删除，可以传一个或者多个id
 
         log.info("ids = " + ids);
 
-        //setmealService.removeWithDish(ids);
+        setmealService.removeWithDish(ids);
 
         return Result.success("成功删除套餐！");
     }
