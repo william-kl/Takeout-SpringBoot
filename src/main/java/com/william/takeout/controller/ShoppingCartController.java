@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -59,6 +60,7 @@ public class ShoppingCartController {
             shoppingCartService.updateById(oneCart);
         }else {//4.不存在，则添加到购物车，数量默认就是1
             shoppingCart.setNumber(1);
+            shoppingCart.setCreateTime(LocalDateTime.now());
             shoppingCartService.save(shoppingCart);
             oneCart = shoppingCart;//进的else分支，oneCart初始为空，需要赋值覆盖一下
         }
@@ -102,13 +104,19 @@ public class ShoppingCartController {
         return Result.success("成功删减订单!");
     }
 
+    /**
+     * 查看购物车；每添加一次菜品，都要重新调用这个list方法去显示购物车
+     * @return
+     */
     @GetMapping("/list")
     public Result<List<ShoppingCart>> list(){
-
+        log.info("查看购物车");
         LambdaQueryWrapper<ShoppingCart> queryWrapper = new LambdaQueryWrapper<>();
+        //按用户id来查购物车信息:不同的用户有不同的购物车
         queryWrapper.eq(ShoppingCart::getUserId,BaseContexts.getCurrentId());
 
         // 最晚下单的 菜品或套餐在购物车中最先展示
+        //上面入购物车的时候加一句，要不排序没意义：shoppingCart.setCreateTime(LocalDateTime.now());
         queryWrapper.orderByDesc(ShoppingCart::getCreateTime);
         List<ShoppingCart> list = shoppingCartService.list(queryWrapper);
 
