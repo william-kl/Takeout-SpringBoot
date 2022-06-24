@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -46,6 +47,15 @@ public class DishController {
     @Autowired
     private CategoryService categoryService;
 
+
+    /**
+     * 在高并发的情况下，频繁查询数据库会导致系统性能下降，服务端响应时间增长。需要对方法进行缓存优化，提高系统的性能
+     * 具体的实现思路如下：
+     * 1.改造DishController的list方法，先从Redis中获取菜品数据，如果有则直接返回，无需查询数据库；
+     * 如果没有则查询数据库，并将查询到的菜品数据放入Redis
+     * 2.改造DishController的save和update方法，加入清理缓存的逻辑；否则造成缓存和数据库的不一致（脏数据）
+     * 注意！在使用缓存过程中，要注意保证数据库中的数据和缓存中的数据一致，如果数据库中的数据发生变化，需要及时清理缓存数据
+     */
     @Autowired
     private RedisTemplate redisTemplate;
 
@@ -57,9 +67,13 @@ public class DishController {
          */
         dishService.saveWithFlavor(dishDto);
 
-        // 清理 后台修改分类 下面的菜品缓存数据
-        //String key = "dish_" + dishDto.getCategoryId() + "_" + dishDto.getStatus();
-        //redisTemplate.delete(key);
+        //清理所有菜品的缓存数据
+        //Set keys = redisTemplate.keys("dish_*");
+        //redisTemplate.delete(keys);
+
+        //只清理具体菜品（湘菜）缓存数据
+        String key = "dish_" + dishDto.getCategoryId() + "_" + dishDto.getStatus();
+        redisTemplate.delete(key);
 
         return Result.success("新增菜品操作成功！");
     }
@@ -146,9 +160,13 @@ public class DishController {
 
         dishService.updateWithFlavor(dishDto);
 
-        // 清理 后台修改分类 下面的菜品缓存数据
-//        String key = "dish_" + dishDto.getCategoryId() + "_" + dishDto.getStatus();
-//        redisTemplate.delete(key);
+        //清理所有菜品的缓存数据
+        //Set keys = redisTemplate.keys("dish_*");
+        //redisTemplate.delete(keys);
+
+        //只清理具体菜品（湘菜）缓存数据
+        String key = "dish_" + dishDto.getCategoryId() + "_" + dishDto.getStatus();
+        redisTemplate.delete(key);
 
         return Result.success("修改菜品操作成功！");
     }
@@ -187,18 +205,19 @@ public class DishController {
 
     @GetMapping("/list")
     public Result<List<DishDto>> list(Dish dish){
+        List<DishDto> dishDtoList = null;
+        //1.先从Redis中获取缓存数据
+        //  根据菜品的category(湘菜、川菜) 去缓存菜品数据(点击湘菜，出来湘菜的list),所以这里动态构建一个key,包含CategoryId
+        String key = "dish_" + dish.getCategoryId() + "_" + dish.getStatus();//dish_1393888482348234923_1
 
-        // = null;
-        //  根据菜品的分类(湘菜、川菜) 去缓存菜品数据
-        //String key = "dish_" + dish.getCategoryId() + "_" + dish.getStatus();
+        dishDtoList = (List<DishDto>) redisTemplate.opsForValue().get(key);
 
-        //dishDtoList = (List<DishDto>) redisTemplate.opsForValue().get(key);
+        //2.如果存在，直接返回，无需查询数据库
+        if (dishDtoList != null){
+          return Result.success(dishDtoList);
+        }
 
-       // if (dishDtoList != null){
-           // return Result.success(dishDtoList);
-        //}
-
-        // dishDtoList == null,即Redis中没有 对应的菜品数据，需要去查询数据库
+        //3.如果不存在，需要查询数据库，将查询到的数据缓存到Redis
         LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(dish.getCategoryId()!= null,Dish::getCategoryId,dish.getCategoryId());
 
@@ -209,7 +228,7 @@ public class DishController {
 
         List<Dish> list = dishService.list(queryWrapper);
 
-        List<DishDto> dishDtoList = list.stream().map((item) -> {
+        dishDtoList = list.stream().map((item) -> {
             DishDto dishDto = new DishDto();
 
             BeanUtils.copyProperties(item, dishDto);
@@ -234,8 +253,9 @@ public class DishController {
 
         }).collect(Collectors.toList());
 
+        // 用户每次查看菜品，都要从数据库查询，如果查询的人很多，数据库压力非常大
         //  将查询到的菜品数据缓存到Redis,并且设置其 查询到的菜品数据有效时间为1小时，其后会清除菜品该菜品数据
-        //redisTemplate.opsForValue().set(key,dishDtoList,60L,TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(key,dishDtoList,60L,TimeUnit.MINUTES);
         // 注意: 如果RedisConfig中配置了value的 序列化方式，则存储key-value时，value应该是String类型，而非List类型
 
         return Result.success(dishDtoList);

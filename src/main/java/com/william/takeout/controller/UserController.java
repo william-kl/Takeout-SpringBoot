@@ -56,10 +56,10 @@ public class UserController {
              userService.sendMsg(phone,subject,context);
 
             //  将随机生成的验证码保存到session中
-            session.setAttribute(phone,code);
+            //session.setAttribute(phone,code);
 
             // 验证码由保存到session 优化为 缓存到Redis中，并且设置验证码的有效时间为 5分钟
-            //redisTemplate.opsForValue().set(phone,code,5, TimeUnit.MINUTES);
+            redisTemplate.opsForValue().set(phone,code,5, TimeUnit.MINUTES);
 
             return Result.success("验证码发送成功，请及时查看!");
         }
@@ -78,10 +78,10 @@ public class UserController {
         String code = map.get("code").toString();
 
         // 从Session中 获取保存的验证码,session 邮箱账号为 key，验证码为value
-        Object codeInSession = session.getAttribute(phone);
+        //Object codeInSession = session.getAttribute(phone);
 
         // 从Redis中获取缓存验证码
-        //Object codeInSession = redisTemplate.opsForValue().get(phone);
+        Object codeInSession = redisTemplate.opsForValue().get(phone);
 
         //  页面提交的验证码 和 Session中保存的验证码 进行比对
         if (codeInSession != null && codeInSession.equals(code)){
@@ -102,7 +102,7 @@ public class UserController {
             session.setAttribute("user",user.getId());
 
             // 如果用户登录成功，则删除Redis中缓存的验证码
-            //redisTemplate.delete(phone);
+            redisTemplate.delete(phone);
 
             //  需要在浏览器端保存用户信息，故返回的数据类型为 Result<User>
             return Result.success(user);
