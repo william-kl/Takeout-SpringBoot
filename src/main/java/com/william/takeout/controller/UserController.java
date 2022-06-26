@@ -53,7 +53,7 @@ public class UserController {
              log.info("code={}",code);
 
              // 真正地发送邮箱验证码
-             userService.sendMsg(phone,subject,context);
+             //userService.sendMsg(phone,subject,context);
 
             //  将随机生成的验证码保存到session中
             //session.setAttribute(phone,code);
