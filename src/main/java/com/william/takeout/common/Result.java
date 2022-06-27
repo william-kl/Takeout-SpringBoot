@@ -11,7 +11,7 @@ import java.util.Map;
  * @param <T>
  */
 @Data
-public class Result<T> implements Serializable {
+public class Result<T> implements Serializable {//*Result需要序列化，否则无法缓存*
 
     private Integer code; //编码：1成功，0和其它数字为失败;给前端提供的
 
