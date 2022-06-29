@@ -20,6 +20,11 @@ import com.william.takeout.entity.DishFlavor;
 import com.william.takeout.service.CategoryService;
 import com.william.takeout.service.DishFlavorService;
 import com.william.takeout.service.DishService;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +41,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/dish")
 @Slf4j
+@Api(tags = "dish management")
 public class DishController {
 
     @Autowired
@@ -60,6 +66,7 @@ public class DishController {
     private RedisTemplate redisTemplate;
 
     @PostMapping
+    @ApiOperation(httpMethod = "POST", value = "add dish: insert into table dish and table dish_flavor")
     public Result<String> save(@RequestBody DishDto dishDto){
         log.info(dishDto.toString());
         /**
@@ -81,6 +88,12 @@ public class DishController {
     //  分页展示菜品信息
     // dish/page?page=1&pageSize=10&name=122334,name 是搜索框中的输入值
     @GetMapping("/page")
+    @ApiOperation(httpMethod = "GET", value = "pagination for dish")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "current page", required = true),
+            @ApiImplicitParam(name = "pageSize", value = "total numbers of pages", required = true),
+            @ApiImplicitParam(name = "name", value = "dish name", required = false)
+    })
     public Result<Page> pageShow(int page,int pageSize,String name){
 
         Page<Dish> dishPage = new Page<>(page,pageSize);
@@ -130,6 +143,27 @@ public class DishController {
 
 
 
+
+
+    @GetMapping("/{id}")
+    /**
+     * 根据id查询菜品（Dish）信息和对应的口味（flavors）信息
+     * 要返回一个DishDto，因为页面需要展示flavors添加口味; Dish没有flavor
+     * 要查询Dish和Flavor, 需要查询两张表，因此要自定义查询方法
+     */
+    @ApiOperation(httpMethod = "GET", value = "get dish info with flavor")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "current dish id", required = true),
+    })
+    public Result<DishDto> get(@PathVariable Long id){
+
+        DishDto dishDto = dishService.getByIdWithFlavor(id);
+
+        return Result.success(dishDto);
+    }
+
+
+
     /**
      * 修改菜品（点击修改按钮）发送4个请求：（处理2，4就好了）
      * 1.发送请求填充菜品分类下拉框(我们在add里已经做过了，在CategoryController的CategoryList方法)
@@ -139,20 +173,6 @@ public class DishController {
      * @param
      * @return
      */
-
-    @GetMapping("/{id}")
-    /**
-     * 根据id查询菜品（Dish）信息和对应的口味（flavors）信息
-     * 要返回一个DishDto，因为页面需要展示flavors添加口味; Dish没有flavor
-     * 要查询Dish和Flavor, 需要查询两张表，因此要自定义查询方法
-     */
-    public Result<DishDto> get(@PathVariable Long id){
-
-        DishDto dishDto = dishService.getByIdWithFlavor(id);
-
-        return Result.success(dishDto);
-    }
-
 //    修改菜品，点击save提交
     @PutMapping
     public Result<String> update(@RequestBody DishDto dishDto){
@@ -171,37 +191,6 @@ public class DishController {
         return Result.success("修改菜品操作成功！");
     }
 
-
-    //处理点击套餐管理 -》添加菜品之后，弹出框左侧的菜品展示
-    // 根据条件(category id)查询对应的菜品dish数据
-    // 例如：弹出框左侧的菜品列表，点击“湘菜”，请求/list/湘菜的id
-    /*
-    @GetMapping("/list")
-    public Result<List<Dish>> list(Dish dish){//传一个ID进来，封装成dish
-
-        // 构造查询条件
-        LambdaQueryWrapper<Dish> queryWrapper = new LambdaQueryWrapper<>();
-        Long categoryId = dish.getCategoryId();
-        queryWrapper.eq(categoryId != null,Dish::getCategoryId,categoryId);
-
-        // 添加条件：status 为 1: 还在售卖的菜品
-        queryWrapper.eq(Dish::getStatus,1);
-        // 根据sort 属性升序片排列
-        queryWrapper.orderByAsc(Dish::getSort).orderByDesc(Dish::getUpdateTime);
-
-        List<Dish> list = dishService.list(queryWrapper);
-
-        return Result.success(list);
-    }
-
-     */
-
-    /**
-     * 根据条件(分类id)查询对应的菜品数据
-     * 前台，后台都有调用
-     * 后台是上面那个方法，返回一个List<Dish>, 前台返回List<DishDto>
-     * 改造后，前台返回的List<DishDto>后台也好用，因为DishDto里都是Dish追加的数据
-      */
 
     @GetMapping("/list")
     public Result<List<DishDto>> list(Dish dish){

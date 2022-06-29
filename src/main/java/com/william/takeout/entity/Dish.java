@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+
 import lombok.Data;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 
 //  菜品分类，id为1
 @Data
+//@ApiModel
 public class Dish implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -19,34 +21,42 @@ public class Dish implements Serializable {
 
 
     //菜品名称
+    //@ApiModelProperty(value = "dish name")
     private String name;
 
 
     //菜品分类id(关联某一个分类)
+    //@ApiModelProperty(value = "category id")
     private Long categoryId;
 
 
     //菜品价格,一般存在数据库中 商品价格 往往以 分作为 基本单位(分、角、元)
+    //@ApiModelProperty(value = "dish price")
     private BigDecimal price;
 
 
     //商品码
+    //@ApiModelProperty(value = "dish code")
     private String code;
 
 
     //图片
+    //@ApiModelProperty(value = "dish image")
     private String image;
 
 
     //描述信息
+    //@ApiModelProperty(value = "dish description")
     private String description;
 
 
     //0 停售 1 起售
+    //@ApiModelProperty(value = "dish status: 0 suspend 1 available")
     private Integer status;
 
 
     //顺序
+    //@ApiModelProperty(value = "dish sort")
     private Integer sort;
 
 
