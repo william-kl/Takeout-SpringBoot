@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import javax.sql.DataSource;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,6 +44,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Api(tags = "dish management")
 public class DishController {
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     private DishService dishService;

@@ -17,6 +17,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/order")
 @Slf4j
 public class OrderController {
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     private OrdersService ordersService;

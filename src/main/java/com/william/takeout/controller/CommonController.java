@@ -2,6 +2,7 @@ package com.william.takeout.controller;
 
 import com.william.takeout.common.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,6 +23,8 @@ import java.util.UUID;
 @RequestMapping("/common")
 @Slf4j
 public class CommonController {
+    @Autowired
+    private DataSource dataSource;
 
     @Value("${upload.filePath}")//文件的路径放到application.yml里，到时候改配置文件就好了
     private String basePath;

@@ -17,6 +17,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.*;
 
+import javax.sql.DataSource;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/setmeal")
 @Slf4j
 public class SetmealController {
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     private SetmealService setmealService;

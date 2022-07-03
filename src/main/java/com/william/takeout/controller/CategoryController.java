@@ -10,13 +10,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.sql.DataSource;
 import java.util.List;
 
 @RestController
 @RequestMapping("/category")
 @Slf4j
 public class CategoryController {
-
+    @Autowired
+    private DataSource dataSource;
     @Autowired
     private CategoryService categoryService;
 
