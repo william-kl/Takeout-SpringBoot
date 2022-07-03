@@ -12,12 +12,15 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.sql.DataSource;
 import java.time.LocalDateTime;
 
 @Slf4j
 @RestController
 @RequestMapping("/employee")
 public class EmployeeController {
+    @Autowired
+    private DataSource dataSource;
 
     @Autowired
     private EmployeeService employeeService;

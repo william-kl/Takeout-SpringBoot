@@ -3,11 +3,38 @@ server:
 spring:
   application:
     name: william_takeout
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/reggie
-    username: root
-    password: 580020162Djh
+  shardingsphere:
+    datasource:
+      names:
+        main,sub
+      main: #main dataSource
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://192.168.242.128:3306/takeout?characterEncoding=utf-8
+        username: root
+        password: root
+      sub: #sub dataSource
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://192.168.242.129:3306/takeout?characterEncoding=utf-8
+        username: root
+        password: root
+    masterslave:
+      load-balance-algorithm-type: round_robin
+      name: dataSource
+      master-data-source-name: main
+      slave-data-source-names: sub
+    props:
+      sql:
+        show: true
+  main:
+    allow-bean-definition-overriding: true
+
+  #datasource:
+    #driver-class-name: com.mysql.cj.jdbc.Driver
+    #url: jdbc:mysql://localhost:3306/reggie
+    #username: root
+    #password: 580020162Djh --!>
   mail:
     host: smtp.163.com  # 发送邮件的服务器地址
     username: xlei1812023@163.com # 登录163邮箱的账号
