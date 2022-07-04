@@ -61,7 +61,7 @@ mybatis-plus:
       id-type: ASSIGN_ID
 
 upload:
-  filePath: C:\takeout\
+  filePath: /usr/local/img/
 
 
 
